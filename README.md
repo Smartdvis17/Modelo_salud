@@ -1,4 +1,4 @@
-# Modelo Salud — Clustering de perfiles de riesgo de intento de suicidio
+# Modelo Salud — Clustering de perfiles de riesgo
 
 Proyecto de aprendizaje no supervisado que segmenta los casos de intento de suicidio del municipio de Tunja, Boyacá, en perfiles de riesgo mediante **MCA (Análisis de Correspondencias Múltiples) + K-Means**.
 
@@ -14,7 +14,7 @@ Proyecto de aprendizaje no supervisado que segmenta los casos de intento de suic
 
 **Dataset**: licencia [Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/legalcode), atribución **Alcaldía de Tunja, Boyacá** (verificado en el metadato oficial del dataset en datos.gov.co). Este repositorio no redistribuye el dataset (ver `.gitignore`); solo lo referencia y lo transforma para producir el análisis publicado aquí.
 
-**Código, notebooks y análisis propios**: © Ana Salcedo Martínez, licencia [Creative Commons Atribución-NoComercial-CompartirIgual 4.0 (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode) — ver texto completo en [LICENSE](LICENSE). Cualquiera puede ver, compartir y adaptar este trabajo dando crédito, siempre que sea sin fines comerciales y que cualquier versión adaptada se comparta bajo esta misma licencia.
+**Código, notebooks y análisis propios**: © Ana Salcedo Martínez, licencia [Creative Commons Atribución-NoComercial-CompartirIgual 4.0 (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode) — ver texto completo en [LICENSE](LICENSE). 
 
 **Aviso de responsabilidad**: este es un proyecto académico/exploratorio, sin garantía de ningún tipo. No es una herramienta de diagnóstico ni de decisión clínica, no debe usarse para identificar o etiquetar individuos, y no se realizó ni se autoriza ningún intento de reidentificación de personas a partir de las variables cuasi-identificadoras del dataset. Cualquier aplicación en un contexto real de salud pública debe pasar primero por un comité de ética y por asesoría legal calificada (ej. cumplimiento de la Ley 1581 de 2012 de protección de datos personales en Colombia, que clasifica los datos de salud como datos sensibles).
 
@@ -31,7 +31,7 @@ Proyecto de aprendizaje no supervisado que segmenta los casos de intento de suic
 │   ├── data_cluster.csv               # Variables de entrada al modelo (salida de 03)
 │   └── data_validacion.csv            # Metadata + variable de validación (salida de 03)
 ├── modelos/
-│   ├── scaler/                        # mca.pkl, scaler_mca.pkl, scaler_estrato.pkl
+│   ├── scaler/                        # mca.pkl, scaler_mca.pkl
 │   └── clasificacion/                 # kmeans_final.pkl, metadata_modelo.pkl
 ├── reporte.html                       # Reporte automático de sweetviz (generado por 02)
 ├── LICENSE                            # CC BY-NC-SA 4.0 (código/análisis) + nota de licencia del dataset
@@ -65,19 +65,19 @@ Separa las columnas en tres grupos con roles distintos, clave para la validez de
 - **`columnas_metadata`**: id, fechas, barrio — se conservan para trazabilidad, no participan del modelo.
 
 ### 4. `04_Clustering.ipynb` — Modelo final
-1. **Depuración de variables** (20 finales): elimina factores binarios raros (<5% prevalencia), y excluye variables con **fuga de información** — `remitido_a_*` (ocurren después del episodio) y las que correlacionan con la variable de validación (`intentos_previos`, `metodo_principal`, `ideacion_suicida_persistente`, `plan_organizado_de_suicidio`). También excluye `sexo`, para que el modelo agrupe por perfil de riesgo y no por género.
-2. **Reducción de dimensionalidad**: MCA con corrección de Benzécri (más apropiado que PCA para un espacio dominado por variables categóricas/binarias). Se retienen 4 componentes (80% de varianza corregida) + `estrato_socioeconomico` como eje ordinal estandarizado → espacio final de 5 dimensiones.
-3. **Selección de k**: se calculan silueta, Calinski-Harabasz, Davies-Bouldin y el tamaño del cluster más pequeño para k = 2..10. La silueta es prácticamente plana (0.21–0.25, estructura *débil* según Kaufman & Rousseeuw) y su máximo absoluto (k=10) deja un cluster de solo 2.8% de los casos. Exigiendo un tamaño mínimo interpretable (cluster más pequeño ≥5% de los datos), el k final es **k = 9** (silueta = 0.247, mejor Davies-Bouldin que k=10).
-4. **Modelo final**: K-Means (k=9, n_init=10) sobre el espacio de 5D, visualizado en 2D vía PCA sobre ese mismo espacio. 
-5. **Validación de estabilidad**: 20 reajustes sobre el 90% de los datos → **ARI = 0.856 ± 0.078** (muy estable).
-6. **Perfilado**: cada cluster se describe por demografía dominante y factores de riesgo que más se desvían (>15 p.p.) del promedio global; se reporta `numero_de_intentos` y `remitido_a_psiquiatria` (fuera del modelo) como validación externa.
-7. **Persistencia**: `MCA`, los dos `StandardScaler` y el `KMeans` final se guardan con `joblib` en `modelos/scaler/` y `modelos/clasificacion/`, junto con la metadata de preprocesamiento — listos para clasificar un caso nuevo sin reajustar el modelo.
-8. **Conclusiones**: cierre del notebook con una lectura de los 9 perfiles resultantes (ver `04_Clustering.ipynb`, sección 13, para el detalle completo).
+1. **Depuración de variables** (17 finales): elimina factores binarios raros (<5% prevalencia), excluye variables con **fuga de información** — `remitido_a_*` (ocurren después del episodio) y las que correlacionan con la variable de validación (`intentos_previos`, `metodo_principal`, `ideacion_suicida_persistente`, `plan_organizado_de_suicidio`) —, excluye `sexo` para que el modelo agrupe por perfil de riesgo y no por género, excluye `area_de_residencia` por ser casi constante (98.3% en una sola categoría) — probado explícitamente: quitarla mejora silueta, Calinski-Harabasz, Davies-Bouldin y estabilidad sin sacrificar ningún factor de riesgo clínico —, y excluye `estrato_socioeconomico` y `seguridad_social` por diluir la señal de riesgo: un experimento de ablación confirmó que quitarlas del espacio de clustering sube la silueta de 0.260 a 0.383, mejora la estabilidad ARI a la vez que la vuelve más consistente (0.911±0.050 → 0.977±0.025).
+2. **Reducción de dimensionalidad**: MCA con corrección de Benzécri (más apropiado que PCA para un espacio dominado por variables categóricas/binarias) sobre las 17 variables restantes, todas categóricas/binarias. Se retienen 3 componentes (80% de varianza corregida) → espacio final de 3 dimensiones, puramente MCA (sin ninguna variable numérica/ordinal añadida aparte).
+3. **Selección de k**: se calculan silueta, y se escoge el tamaño del cluster más pequeño para k = 2..10. La silueta se mueve entre 0.330 y 0.383, con **k=6 como máximo absoluto** — y ese mismo k ya cumple la regla de tamaño mínimo de cluster (7.8% ≥ 5%), así que el óptimo estadístico y el accionable coinciden.
+4. **Modelo final**: K-Means (k=6, n_init=10) sobre el espacio de 3D, visualizado en 2D vía PCA sobre ese mismo espacio.
+5. **Validación de estabilidad**: 20 reajustes sobre el 90% de los datos → **ARI = 0.977 ± 0.025** (muy estable).
+6. **Perfilado**: cada cluster se describe por demografía dominante y factores de riesgo que más se desvían (>15 p.p.) del promedio global; se reportan `numero_de_intentos`, `remitido_a_psiquiatria`, `estrato_socioeconomico` y `seguridad_social` (las cuatro fuera del modelo) como validación/caracterización externa.
+7. **Persistencia**: `MCA`, el `StandardScaler` de los componentes de MCA y el `KMeans` final se guardan con `joblib` en `modelos/scaler/` y `modelos/clasificacion/`, junto con la metadata de preprocesamiento — listos para clasificar un caso nuevo sin reajustar el modelo.
+8. **Conclusiones**: cierre del notebook con una lectura de los 6 perfiles resultantes (ver `04_Clustering.ipynb`, sección 13, para el detalle completo).
 
 ## Limitaciones
 
-- **Estructura de cluster moderada/débil por naturaleza de los datos**: silhouette = 0.247 indica separación débil entre grupos — inherente a datos de salud dominados por variables binarias de baja prevalencia. El modelo es una herramienta de apoyo a la priorización, no una partición exacta ni una etiqueta clínica definitiva por caso.
-- No existe todavía un notebook/script de inferencia que cargue los artefactos de `modelos/` para clasificar un caso nuevo end-to-end (los artefactos ya están listos para eso, falta el consumidor).
+- **Estructura de cluster moderada por naturaleza de los datos**: silhouette = 0.383 mejoró sustancialmente frente a versiones anteriores (0.247 → 0.260 → 0.383) al depurar variables que diluían la señal de riesgo, pero sigue por debajo del umbral de "estructura fuerte" (>0.5)
+
 
 ## Cómo ejecutar
 

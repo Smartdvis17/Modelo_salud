@@ -41,9 +41,9 @@ Cada notebook depende del CSV que produce el anterior — deben correrse en este
 ## 5. Verificar que corrió bien
 
 Al final de `04_Clustering.ipynb` deberías ver:
-- La celda de selección de k imprimiendo `k elegido: 9 (silueta = 0.247)`.
-- La celda de estabilidad imprimiendo un ARI promedio cercano a `0.85`.
-- La celda de persistencia listando 5 archivos `.pkl`: `modelos/scaler/mca.pkl`, `modelos/scaler/scaler_mca.pkl`, `modelos/scaler/scaler_estrato.pkl`, `modelos/clasificacion/kmeans_final.pkl`, `modelos/clasificacion/metadata_modelo.pkl`.
+- La celda de selección de k imprimiendo `k elegido: 6 (silueta = 0.383)`.
+- La celda de estabilidad imprimiendo un ARI promedio cercano a `0.977`.
+- La celda de persistencia listando 4 archivos `.pkl`: `modelos/scaler/mca.pkl`, `modelos/scaler/scaler_mca.pkl`, `modelos/clasificacion/kmeans_final.pkl`, `modelos/clasificacion/metadata_modelo.pkl`.
 
 ## Problemas comunes
 
