@@ -1,0 +1,22 @@
+# Datos crudos, procesados y reportes derivados del dataset sensible — no se versionan
+data/
+reporte.html
+
+# Modelos entrenados (artefactos binarios, regenerables corriendo 04_Clustering.ipynb)
+modelos/**/*.pkl
+
+# Entorno virtual y caches de Python
+.venv/
+__pycache__/
+*.pyc
+
+# Checkpoints de Jupyter
+.ipynb_checkpoints/
+
+# Archivos de sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Guía genérica de entorno uv (personal, compartida entre proyectos) — no es específica de este repo
+GUIA_UV.md
